@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smooth Heart Text Flow</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #000;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="heartCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('heartCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = (canvas.width = Math.min(window.innerWidth, 500));
+    let height = (canvas.height = Math.min(window.innerHeight, 500));
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = Math.min(window.innerWidth, 500);
+      height = canvas.height = Math.min(window.innerHeight, 500);
+    });
+
+    const svgPath = "M 250,150 C 250,60 130,40 80,120 C 20,200 70,300 240,410 Q 250,418 260,410 C 430,300 480,200 420,120 C 370,40 250,60 250,150 Z";
+
+    const svgNS = "http://www.w3.org/2000/svg";
+    const pathElement = document.createElementNS(svgNS, "path");
+    pathElement.setAttribute("d", svgPath);
+    const pathLength = pathElement.getTotalLength();
+
+    // 1. TÍNH TOÁN SẴN BẢNG TỌA ĐỘ (PRE-CALCULATE) ĐỂ TỐI ƯU HIỆU NĂNG
+    const resolution = 2000; // Lưu 2000 điểm mẫu giúp đường cong siêu mịn
+    const pointsCache = [];
+
+    for (let i = 0; i < resolution; i++) {
+      const dist = (i / resolution) * pathLength;
+      const pt = pathElement.getPointAtLength(dist);
+      const nextPt = pathElement.getPointAtLength((dist + 1) % pathLength);
+      const angle = Math.atan2(nextPt.y - pt.y, nextPt.x - pt.x);
+
+      pointsCache.push({ x: pt.x, y: pt.y, angle: angle });
+    }
+
+    const pattern = "I love you • ";
+    const fontSize = 14;
+    const charWidth = 10.5;
+
+    const totalChars = Math.floor(pathLength / charWidth);
+    let fullText = "";
+    while (fullText.length < totalChars) {
+      fullText += pattern;
+    }
+    fullText = fullText.substring(0, totalChars);
+
+    const exactSpacing = pathLength / totalChars;
+
+    // Tốc độ chạy mượt (có thể tăng giảm tùy thích)
+    let offset = 0;
+    const speed = 2.5;
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
+      ctx.fillStyle = "#ff69b4";
+      ctx.shadowColor = "#ff1493";
+      ctx.shadowBlur = 8;
+
+      offset = (offset + speed) % pathLength;
+
+      for (let i = 0; i < totalChars; i++) {
+        const char = fullText[i];
+        
+        // Lấy nhanh tọa độ từ Bộ nhớ đệm Cache thay vì tính lại từ đầu
+        const dist = (offset + i * exactSpacing) % pathLength;
+        const cacheIndex = Math.floor((dist / pathLength) * resolution) % resolution;
+        const p = pointsCache[cacheIndex];
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+
+</body>
+</html>
