@@ -49,7 +49,7 @@
     const pathLength = pathElement.getTotalLength();
 
     // 1. TÍNH TOÁN SẴN BẢNG TỌA ĐỘ (PRE-CALCULATE) ĐỂ TỐI ƯU HIỆU NĂNG
-    const resolution = 2000; // Lưu 2000 điểm mẫu giúp đường cong siêu mịn
+    const resolution = 10000; // Lưu 2000 điểm mẫu giúp đường cong siêu mịn
     const pointsCache = [];
 
     for (let i = 0; i < resolution; i++) {
@@ -76,7 +76,7 @@
 
     // Tốc độ chạy mượt (có thể tăng giảm tùy thích)
     let offset = 0;
-    const speed = 2.5;
+    const speed = 3.5;
 
     function draw() {
       ctx.clearRect(0, 0, width, height);
